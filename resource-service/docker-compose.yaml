@@ -3,11 +3,12 @@ version: '3'
 services:
   postgres:
     image: 'postgres:16.1'
-    container_name: 'postgresql'
+    container_name: 'resource-postgres'
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - 'POSTGRES_USER=admin'
       - 'POSTGRES_PASSWORD=password'
-      - 'POSTGRES_HOST_AUTH_METHOD=trust'
-      - 'POSTGRES_DB=resources'
+      - 'POSTGRES_DB=resource-db'
+    volumes:
+      - './src/main/resources/audiofile.sql:/docker-entrypoint-initdb.d/audiofile.sql'

@@ -20,6 +20,12 @@ public class ResourceController {
     this.resourceService = resourceService;
   }
 
+  @PostMapping(path = "/")
+  public ResponseEntity<?> upload(InputStream dataStream) throws IOException {
+    Integer id = resourceService.addFile(dataStream.readAllBytes());
+    return new ResponseEntity<>(id, HttpStatus.OK);
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<?> download(@PathVariable Integer id) {
     return resourceService
@@ -28,16 +34,10 @@ public class ResourceController {
         .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @PostMapping(path = "/")
-  public ResponseEntity<?> upload(InputStream dataStream) throws IOException {
-    Integer id = resourceService.addFile(dataStream.readAllBytes());
-    return new ResponseEntity<>(id, HttpStatus.OK);
-  }
-
   @DeleteMapping("/")
-  public ResponseEntity<?> delete(String ids) {
-    List<Integer> deleteFiles = resourceService.deleteFiles(ids);
+  public ResponseEntity<?> delete(@RequestParam(value = "id") String id) {
+    List<Integer> deletedFiles = resourceService.deleteFiles(id);
 
-    return new ResponseEntity<>(deleteFiles, HttpStatus.OK);
+    return new ResponseEntity<>(deletedFiles, HttpStatus.OK);
   }
 }

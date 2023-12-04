@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "audiofiles")
+@Table(name = "audiofile")
 public class AudioFile {
 
   @Id

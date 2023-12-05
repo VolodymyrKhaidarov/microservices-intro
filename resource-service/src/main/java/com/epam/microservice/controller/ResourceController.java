@@ -34,7 +34,7 @@ public class ResourceController {
   }
 
   @DeleteMapping("/")
-  public ResponseEntity<List<Integer>> delete(@RequestParam(value = "id") String id) {
+  public ResponseEntity<List<Integer>> deleteResource(@RequestParam(value = "id") String id) {
     List<Integer> deletedFiles = resourceService.deleteResources(id);
 
     return new ResponseEntity<>(deletedFiles, HttpStatus.OK);

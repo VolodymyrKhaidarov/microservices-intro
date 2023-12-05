@@ -27,6 +27,9 @@ public class SongMetadata {
   private String artist;
 
   @Column
+  private String album;
+
+  @Column
   private String length;
 
   @Column

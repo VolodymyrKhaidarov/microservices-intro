@@ -1,12 +1,13 @@
 package com.epam.microservice.controller;
 
-import com.epam.microservice.model.Song;
+import com.epam.microservice.model.SongMetadata;
 import com.epam.microservice.service.SongService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,23 +22,24 @@ public class SongController {
   }
 
   @PostMapping(path = "/")
-  public ResponseEntity<?> uploadSong(@Validated @RequestBody Song song) {
-    Integer id = songService.addSong(song);
+  public ResponseEntity<Integer> uploadSongMetadata(@Valid @RequestBody SongMetadata songMetadata) {
+    Integer id = songService.addSongMetadata(songMetadata);
+
     return new ResponseEntity<>(id, HttpStatus.OK);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> getSong(@PathVariable Integer id) {
-    return songService
-        .getSongById(id)
-        .map(song -> new ResponseEntity<>(song, HttpStatus.OK))
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+  public ResponseEntity<SongMetadata> getSongMetadata(@PathVariable Integer id) {
+    SongMetadata songMetadata = songService.getSongMetadataById(id);
+
+    return new ResponseEntity<>(songMetadata, HttpStatus.OK);
   }
 
   @DeleteMapping("/")
-  public ResponseEntity<?> deleteSong(@RequestParam(value = "id") String id) {
-    List<Integer> deletedSongs = songService.deleteSongs(id);
+  public ResponseEntity<List<Integer>> deleteSongMetadata(
+      @RequestParam(value = "id") @Size(max = 199) String id) {
+    List<Integer> deletedSongMetadata = songService.deleteSongMetadata(id);
 
-    return new ResponseEntity<>(deletedSongs, HttpStatus.OK);
+    return new ResponseEntity<>(deletedSongMetadata, HttpStatus.OK);
   }
 }

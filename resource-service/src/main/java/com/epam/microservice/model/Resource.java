@@ -8,8 +8,8 @@ import lombok.*;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "audiofile")
-public class AudioFile {
+@Table(name = "resource")
+public class Resource {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

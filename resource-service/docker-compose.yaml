@@ -11,4 +11,4 @@ services:
       - 'POSTGRES_PASSWORD=password'
       - 'POSTGRES_DB=resource-db'
     volumes:
-      - './src/main/resources/audiofile.sql:/docker-entrypoint-initdb.d/audiofile.sql'
+      - './src/main/resources/resource.sql:/docker-entrypoint-initdb.d/resource.sql'

@@ -1,6 +1,7 @@
 package com.epam.microservice.service;
 
-import com.epam.microservice.model.Song;
+import com.epam.microservice.exception.SongMetadataNotFoundException;
+import com.epam.microservice.model.SongMetadata;
 import com.epam.microservice.repository.SongRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,17 +21,22 @@ public class SongServiceImpl implements SongService {
   }
 
   @Override
-  public Integer addSong(Song song) {
-    return songRepository.save(song).getId();
+  public Integer addSongMetadata(SongMetadata songMetadata) {
+    return songRepository.save(songMetadata).getId();
   }
 
   @Override
-  public Optional<Song> getSongById(Integer id) {
-    return songRepository.findById(id);
+  public SongMetadata getSongMetadataById(Integer id) {
+    return songRepository
+        .findById(id)
+        .orElseThrow(
+            () ->
+                new SongMetadataNotFoundException(
+                    "The song metadata with id " + id + " does not exist"));
   }
 
   @Override
-  public List<Integer> deleteSongs(String ids) {
+  public List<Integer> deleteSongMetadata(String ids) {
 
     List<Integer> deletedSongs = new ArrayList<>();
 

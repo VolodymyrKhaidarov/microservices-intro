@@ -1,14 +1,15 @@
 package com.epam.microservice.service;
 
-import com.epam.microservice.model.AudioFile;
+import com.epam.microservice.model.Resource;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
-import java.util.Optional;
 
 public interface ResourceService {
 
-  Integer addFile(byte[] payload);
+  Integer addResource(MultipartFile multipartFile);
 
-  Optional<AudioFile> getFileById(Integer id);
+  Resource getResourceById(Integer id);
 
-  List<Integer> deleteFiles(String ids);
+  List<Integer> deleteResources(String ids);
 }

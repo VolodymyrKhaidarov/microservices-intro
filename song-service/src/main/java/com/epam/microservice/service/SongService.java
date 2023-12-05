@@ -1,14 +1,13 @@
 package com.epam.microservice.service;
 
-import com.epam.microservice.model.Song;
+import com.epam.microservice.model.SongMetadata;
 import java.util.List;
-import java.util.Optional;
 
 public interface SongService {
 
-  Integer addSong(Song song);
+  Integer addSongMetadata(SongMetadata songMetadata);
 
-  Optional<Song> getSongById(Integer id);
+  SongMetadata getSongMetadataById(Integer id);
 
-  List<Integer> deleteSongs(String ids);
+  List<Integer> deleteSongMetadata(String ids);
 }

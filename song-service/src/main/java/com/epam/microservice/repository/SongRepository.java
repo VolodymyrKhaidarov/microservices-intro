@@ -1,8 +1,8 @@
 package com.epam.microservice.repository;
 
-import com.epam.microservice.model.Song;
+import com.epam.microservice.model.SongMetadata;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SongRepository extends CrudRepository<Song, Integer> {}
+public interface SongRepository extends CrudRepository<SongMetadata, Integer> {}

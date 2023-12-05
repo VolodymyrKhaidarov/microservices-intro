@@ -1,13 +1,14 @@
 package com.epam.microservice.controller;
 
+import com.epam.microservice.model.Resource;
 import com.epam.microservice.service.ResourceService;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/resources")
@@ -20,23 +21,21 @@ public class ResourceController {
     this.resourceService = resourceService;
   }
 
-  @PostMapping(path = "/")
-  public ResponseEntity<?> upload(InputStream dataStream) throws IOException {
-    Integer id = resourceService.addFile(dataStream.readAllBytes());
+  @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<Integer> uploadResource(@RequestParam("file") MultipartFile multipartFile) {
+    Integer id = resourceService.addResource(multipartFile);
     return new ResponseEntity<>(id, HttpStatus.OK);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> download(@PathVariable Integer id) {
-    return resourceService
-        .getFileById(id)
-        .map(file -> new ResponseEntity<>(file.getPayload(), HttpStatus.OK))
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+  public ResponseEntity<byte[]> downloadResource(@PathVariable Integer id) {
+    Resource resource = resourceService.getResourceById(id);
+    return new ResponseEntity<>(resource.getPayload(), HttpStatus.OK);
   }
 
   @DeleteMapping("/")
-  public ResponseEntity<?> delete(@RequestParam(value = "id") String id) {
-    List<Integer> deletedFiles = resourceService.deleteFiles(id);
+  public ResponseEntity<List<Integer>> delete(@RequestParam(value = "id") String id) {
+    List<Integer> deletedFiles = resourceService.deleteResources(id);
 
     return new ResponseEntity<>(deletedFiles, HttpStatus.OK);
   }

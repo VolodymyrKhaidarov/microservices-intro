@@ -1,13 +1,18 @@
 package com.epam.microservice.service;
 
-import com.epam.microservice.model.AudioFile;
+import com.epam.microservice.exception.InvalidFileException;
+import com.epam.microservice.exception.ResourceNotFoundException;
+import com.epam.microservice.model.Resource;
 import com.epam.microservice.repository.ResourceRepository;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ResourceServiceImpl implements ResourceService {
@@ -19,19 +24,33 @@ public class ResourceServiceImpl implements ResourceService {
     this.resourceRepository = resourceRepository;
   }
 
-  public Integer addFile(byte[] payload) {
-    AudioFile audioFile = new AudioFile();
-    audioFile.setPayload(payload);
-    audioFile = resourceRepository.save(audioFile);
-    return audioFile.getId();
+  public Integer addResource(MultipartFile multipartFile) {
+    Resource resource = new Resource();
+
+    if (!"mp3".equals(FilenameUtils.getExtension(multipartFile.getOriginalFilename()))) {
+      throw new InvalidFileException("Invalid file");
+    }
+
+    try {
+      byte[] bytes = multipartFile.getBytes();
+      resource.setPayload(bytes);
+    } catch (IOException exception) {
+      throw new InvalidFileException("Invalid file");
+    }
+
+    resource = resourceRepository.save(resource);
+    return resource.getId();
   }
 
-  public Optional<AudioFile> getFileById(Integer id) {
-    return resourceRepository.findById(id);
+  public Resource getResourceById(Integer id) {
+    return resourceRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("The resource with id " + id + " does not exist"));
   }
 
   @Override
-  public List<Integer> deleteFiles(String ids) {
+  public List<Integer> deleteResources(String ids) {
 
     List<Integer> deletedFiles = new ArrayList<>();
 

@@ -55,14 +55,18 @@ public class ResourceServiceImpl implements ResourceService {
     resource = resourceRepository.save(resource);
     resourceMetadata.setResourceId(String.valueOf(resource.getId()));
 
+    postMetadata(resourceMetadata);
+
+    return resource.getId();
+  }
+
+  private void postMetadata(ResourceMetadata resourceMetadata) {
     restClient
         .post()
         .contentType(MediaType.APPLICATION_JSON)
         .body(resourceMetadata)
         .retrieve()
         .body(Integer.class);
-
-    return resource.getId();
   }
 
   public Resource getResourceById(Integer id) {

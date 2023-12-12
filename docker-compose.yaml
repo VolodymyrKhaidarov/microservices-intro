@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  resource-service:
+    image: 'resource-service:0.0.1'
+    container_name: 'resource-service-v1'
+    depends_on:
+      - 'resource-db'
+    ports:
+      - '8080:8080'
+
+  song-service:
+    image: 'song-service:0.0.1'
+    container_name: 'song-service-v1'
+    depends_on:
+      - 'song-db'
+    ports:
+      - '8081:8081'
+
+  resource-db:
+    image: 'postgres:16.1'
+    container_name: "resource-db"
+    ports:
+      - '5432:5432'
+    environment:
+      - 'POSTGRES_USER=admin'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_DB=resource-db'
+    volumes:
+      - './resource-service/src/main/resources/resource.sql:/docker-entrypoint-initdb.d/resource.sql'
+
+  song-db:
+    image: 'postgres:16.1'
+    container_name: "song-db"
+    ports:
+      - '5433:5432'
+    environment:
+      - 'POSTGRES_USER=admin'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_DB=song-db'
+    volumes:
+      - './song-service/src/main/resources/song.sql:/docker-entrypoint-initdb.d/song.sql'

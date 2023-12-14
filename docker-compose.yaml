@@ -2,7 +2,8 @@ version: '3'
 
 services:
   resource-service:
-    image: 'resource-service:0.0.1'
+    build: './resource-service'
+    image: 'resource-service:1.0.0'
     container_name: 'resource-service-v1'
     depends_on:
       - 'resource-db'
@@ -12,7 +13,8 @@ services:
       - 'config/resource.env'
 
   song-service:
-    image: 'song-service:0.0.1'
+    build: './song-service'
+    image: 'song-service:1.0.0'
     container_name: 'song-service-v1'
     depends_on:
       - 'song-db'

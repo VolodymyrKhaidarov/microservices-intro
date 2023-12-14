@@ -7,14 +7,9 @@ services:
     depends_on:
       - 'resource-db'
     ports:
-      - '8080:8080'
-    environment:
-      - 'SONG_SERVICE_URL=http://song-service:8080/songs/'
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://resource-db:5432/resource-db'
-      - 'SPRING_DATASOURCE_USERNAME=admin'
-      - 'SPRING_DATASOURCE_PASSWORD=password'
-      - 'SPRING_SERVLET_MULTIPART_MAX-FILE-SIZE=100MB'
-      - 'SPRING_SERVLET_MULTIPART_MAX-REQUEST-SIZE=100MB'
+      - '8081:8080'
+    env_file:
+      - 'config/resource.env'
 
   song-service:
     image: 'song-service:0.0.1'
@@ -22,32 +17,26 @@ services:
     depends_on:
       - 'song-db'
     ports:
-      - '8081:8080'
-    environment:
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://song-db:5432/song-db'
-      - 'SPRING_DATASOURCE_USERNAME=admin'
-      - 'SPRING_DATASOURCE_PASSWORD=password'
+      - '8082:8080'
+    env_file:
+      - 'config/song.env'
 
   resource-db:
     image: 'postgres:16.1'
     container_name: "resource-db"
     ports:
       - '5433:5432'
-    environment:
-      - 'POSTGRES_USER=admin'
-      - 'POSTGRES_PASSWORD=password'
-      - 'POSTGRES_DB=resource-db'
+    env_file:
+      - 'config/resource.env'
     volumes:
-      - './resource.sql:/docker-entrypoint-initdb.d/resource.sql'
+      - './config/resource.sql:/docker-entrypoint-initdb.d/resource.sql'
 
   song-db:
     image: 'postgres:16.1'
     container_name: "song-db"
     ports:
       - '5434:5432'
-    environment:
-      - 'POSTGRES_USER=admin'
-      - 'POSTGRES_PASSWORD=password'
-      - 'POSTGRES_DB=song-db'
+    env_file:
+      - 'config/song.env'
     volumes:
-      - './song.sql:/docker-entrypoint-initdb.d/song.sql'
+      - './config/song.sql:/docker-entrypoint-initdb.d/song.sql'

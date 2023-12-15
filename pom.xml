@@ -12,6 +12,7 @@
     <modules>
         <module>resource-service</module>
         <module>song-service</module>
+        <module>eureka-service-registry</module>
     </modules>
 
 </project>

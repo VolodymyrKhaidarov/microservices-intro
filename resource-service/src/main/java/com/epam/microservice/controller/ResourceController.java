@@ -21,7 +21,7 @@ public class ResourceController {
     this.resourceService = resourceService;
   }
 
-  @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<Integer> uploadResource(@RequestParam("file") MultipartFile multipartFile) {
     Integer id = resourceService.addResource(multipartFile);
     return new ResponseEntity<>(id, HttpStatus.OK);
@@ -33,7 +33,7 @@ public class ResourceController {
     return new ResponseEntity<>(resource.getPayload(), HttpStatus.OK);
   }
 
-  @DeleteMapping("/")
+  @DeleteMapping()
   public ResponseEntity<List<Integer>> deleteResource(@RequestParam(value = "id") String id) {
     List<Integer> deletedFiles = resourceService.deleteResources(id);
 

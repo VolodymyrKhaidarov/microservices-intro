@@ -21,7 +21,7 @@ public class SongController {
     this.songService = songService;
   }
 
-  @PostMapping(path = "/")
+  @PostMapping()
   public ResponseEntity<Integer> uploadSongMetadata(@Valid @RequestBody SongMetadata songMetadata) {
     Integer id = songService.addSongMetadata(songMetadata);
 
@@ -35,7 +35,7 @@ public class SongController {
     return new ResponseEntity<>(songMetadata, HttpStatus.OK);
   }
 
-  @DeleteMapping("/")
+  @DeleteMapping()
   public ResponseEntity<List<Integer>> deleteSongMetadata(
       @RequestParam(value = "id") @Size(max = 199) String id) {
     List<Integer> deletedSongMetadata = songService.deleteSongMetadata(id);

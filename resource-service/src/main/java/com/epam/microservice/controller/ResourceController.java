@@ -1,6 +1,5 @@
 package com.epam.microservice.controller;
 
-import com.epam.microservice.model.Resource;
 import com.epam.microservice.service.ResourceService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,7 @@ public class ResourceController {
 
   @GetMapping("/{id}")
   public ResponseEntity<byte[]> downloadResource(@PathVariable Integer id) {
-    Resource resource = resourceService.getResourceById(id);
-    return new ResponseEntity<>(resource.getPayload(), HttpStatus.OK);
+    return new ResponseEntity<>(resourceService.getResourceById(id), HttpStatus.OK);
   }
 
   @DeleteMapping()

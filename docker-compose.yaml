@@ -1,6 +1,17 @@
 version: '3'
 
 services:
+  aws:
+    container_name: 'aws'
+    image: 'localstack/localstack'
+    ports:
+      - '4566:4566'
+      - '4510-4559:4510-4559'
+    volumes:
+      - './config/aws.sh:/etc/localstack/init/ready.d/aws.sh'
+      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+
   eureka-service-registry:
     build: './eureka-service-registry'
     image: 'eureka-service-registry:1.0.0'

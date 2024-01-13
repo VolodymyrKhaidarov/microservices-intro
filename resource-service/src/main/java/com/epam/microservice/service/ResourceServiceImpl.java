@@ -3,37 +3,26 @@ package com.epam.microservice.service;
 import com.epam.microservice.exception.InvalidFileException;
 import com.epam.microservice.exception.ResourceNotFoundException;
 import com.epam.microservice.model.Resource;
-import com.epam.microservice.model.ResourceMetadata;
-import com.epam.microservice.parser.ResourceParser;
 import com.epam.microservice.repository.ResourceRepository;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-import org.xml.sax.SAXException;
 
 @Service
 public class ResourceServiceImpl implements ResourceService {
 
   private final ResourceRepository resourceRepository;
-  private final ResourceParser resourceParser;
-  private final RestClient restClient;
+  private final S3Service s3Service;
 
   @Autowired
-  public ResourceServiceImpl(
-      ResourceRepository resourceRepository, ResourceParser resourceParser, RestClient restClient) {
-
+  public ResourceServiceImpl(ResourceRepository resourceRepository, S3Service s3Service) {
     this.resourceRepository = resourceRepository;
-    this.resourceParser = resourceParser;
-    this.restClient = restClient;
+    this.s3Service = s3Service;
   }
 
   public Integer addResource(MultipartFile multipartFile) {
@@ -42,36 +31,17 @@ public class ResourceServiceImpl implements ResourceService {
       throw new InvalidFileException("Invalid file");
     }
 
-    Resource resource = new Resource();
-    ResourceMetadata resourceMetadata;
-
-    try {
-      resource.setPayload(multipartFile.getBytes());
-      resourceMetadata = resourceParser.getMetadata(multipartFile.getInputStream());
-    } catch (IOException | TikaException | RuntimeException | SAXException exception) {
-      throw new InvalidFileException("Invalid file");
-    }
-
-    resource = resourceRepository.save(resource);
-    resourceMetadata.setResourceId(String.valueOf(resource.getId()));
-
-    postMetadata(resourceMetadata);
-
-    return resource.getId();
+    String resourceKey = s3Service.uploadResource(multipartFile);
+    return resourceRepository.findByResourceKey(resourceKey).stream()
+        .findAny()
+        .orElseGet(() -> resourceRepository.save(new Resource(null, s3Service.getS3Bucket(), resourceKey)))
+        .getId();
   }
 
-  private void postMetadata(ResourceMetadata resourceMetadata) {
-    restClient
-        .post()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(resourceMetadata)
-        .retrieve()
-        .body(Integer.class);
-  }
-
-  public Resource getResourceById(Integer id) {
+  public byte[] getResourceById(Integer id) {
     return resourceRepository
         .findById(id)
+        .flatMap(resource -> s3Service.downloadResource(resource.getResourceKey()))
         .orElseThrow(
             () -> new ResourceNotFoundException("The resource with id " + id + " does not exist"));
   }
@@ -82,10 +52,14 @@ public class ResourceServiceImpl implements ResourceService {
     List<Integer> deletedFiles = new ArrayList<>();
 
     for (Integer id : parseCSV(ids)) {
-      if (resourceRepository.existsById(id)) {
-        resourceRepository.deleteById(id);
-        deletedFiles.add(id);
-      }
+      resourceRepository
+          .findById(id)
+          .ifPresent(
+              resource -> {
+                resourceRepository.deleteById(resource.getId());
+                s3Service.deleteResource(resource.getResourceKey());
+                deletedFiles.add(id);
+              });
     }
     return deletedFiles;
   }

@@ -57,6 +57,17 @@ services:
     env_file:
       - 'config/song.env'
 
+  resource-processor:
+    build: './resource-processor'
+    image: 'resource-processor:1.0.0'
+    depends_on:
+      - 'eureka-service-registry'
+      - 'gateway-service'
+    ports:
+      - '8084:8080'
+    env_file:
+      - 'config/processor.env'
+
   resource-db:
     image: 'postgres:16.1'
     ports:

@@ -11,6 +11,7 @@
 
     <modules>
         <module>resource-service</module>
+        <module>resource-processor</module>
         <module>song-service</module>
         <module>eureka-service-registry</module>
         <module>gateway-service</module>

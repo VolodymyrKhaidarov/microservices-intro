@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 public class S3ServiceImpl implements S3Service {
@@ -26,12 +28,9 @@ public class S3ServiceImpl implements S3Service {
 
   @Override
   public String uploadResource(MultipartFile multipartFile) {
-
     String key = multipartFile.getOriginalFilename();
-
-    PutObjectRequest request = PutObjectRequest.builder().key(key).bucket(s3Bucket).build();
-
     try {
+      PutObjectRequest request = PutObjectRequest.builder().key(key).bucket(s3Bucket).build();
       s3Client.putObject(request, RequestBody.fromBytes(multipartFile.getBytes()));
     } catch (IOException e) {
       throw new InvalidFileException("Invalid file");
@@ -42,7 +41,6 @@ public class S3ServiceImpl implements S3Service {
 
   @Override
   public Optional<byte[]> downloadResource(String key) {
-
     try {
       GetObjectRequest request = GetObjectRequest.builder().key(key).bucket(s3Bucket).build();
       return Optional.of(s3Client.getObject(request).readAllBytes());
@@ -54,7 +52,6 @@ public class S3ServiceImpl implements S3Service {
 
   @Override
   public void deleteResource(String key) {
-
     DeleteObjectRequest deleteObjectRequest =
         DeleteObjectRequest.builder().key(key).bucket(s3Bucket).build();
 

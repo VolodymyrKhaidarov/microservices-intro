@@ -3,7 +3,6 @@ package com.epam.microservice.service;
 import com.epam.microservice.exception.SongMetadataNotFoundException;
 import com.epam.microservice.model.SongMetadata;
 import com.epam.microservice.repository.SongRepository;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -22,6 +21,11 @@ public class SongServiceImpl implements SongService {
 
   @Override
   public Integer addSongMetadata(SongMetadata songMetadata) {
+    songRepository.findByResourceId(songMetadata.getResourceId()).stream()
+        .findFirst()
+        .map(SongMetadata::getId)
+        .ifPresent(songMetadata::setId);
+
     return songRepository.save(songMetadata).getId();
   }
 
@@ -37,23 +41,12 @@ public class SongServiceImpl implements SongService {
 
   @Override
   public List<Integer> deleteSongMetadata(String ids) {
-
-    List<Integer> deletedSongs = new ArrayList<>();
-
-    for (Integer id : parseCSV(ids)) {
-      if (songRepository.existsById(id)) {
-        songRepository.deleteById(id);
-        deletedSongs.add(id);
-      }
-    }
-    return deletedSongs;
-  }
-
-  private List<Integer> parseCSV(String csv) {
-    return Optional.ofNullable(csv).map(str -> str.split(",")).stream()
+    return Optional.ofNullable(ids).map(str -> str.split(",")).stream()
         .flatMap(Stream::of)
         .filter(str -> str.matches("-?(0|[1-9]\\d*)"))
         .map(Integer::parseInt)
+        .filter(songRepository::existsById)
+        .peek(songRepository::deleteById)
         .toList();
   }
 }

@@ -1,8 +1,18 @@
 version: '3'
 
 services:
+  zookeeper:
+    image: 'wurstmeister/zookeeper'
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: 'wurstmeister/kafka'
+    ports:
+      - "9092-9093:9092-9093"
+    env_file:
+      - 'config/kafka.env'
   aws:
-    container_name: 'aws'
     image: 'localstack/localstack'
     ports:
       - '4566:4566'

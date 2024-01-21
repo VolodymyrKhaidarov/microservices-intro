@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ResourceMetadata {
+public class Metadata {
 
   private String resourceId;
   private String name;

@@ -1,18 +1,15 @@
 package com.epam.microservice.processor;
 
-import com.epam.microservice.exception.InvalidResourceDataException;
 import com.epam.microservice.exception.ResourceNotAvailableException;
-import com.epam.microservice.model.ResourceMetadata;
+import com.epam.microservice.exception.ResourceProcessorException;
+import com.epam.microservice.model.Metadata;
 import com.epam.microservice.parser.ResourceParser;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.Optional;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -36,74 +33,54 @@ public class ResourceProcessorImpl implements ResourceProcessor {
   }
 
   @Override
-  public Integer processMetadata(Integer resourceId) {
-    return getResourceData(restClient, resourceServiceUrl, resourceId)
-        .flatMap(resource -> parseResourceMetadata(resourceParser, resourceId, resource))
-        .flatMap(metadata -> postResourceMetadata(restClient, songServiceUrl, metadata))
-        .orElse(-1);
+  public void processMetadata(Integer resourceId) {
+    byte[] resourceData = getResourceData(resourceId);
+    Metadata metadata = parseResourceMetadata(resourceId, resourceData);
+    postResourceMetadata(resourceId, metadata);
   }
 
-  private Optional<byte[]> getResourceData(
-      RestClient restClient, String resourceServiceUrl, Integer resourceId) {
-    try {
-      return Optional.ofNullable(
-              restClient
-                  .get()
-                  .uri(resourceServiceUrl + "/" + resourceId)
-                  .retrieve()
-                  .onStatus(
-                      HttpStatusCode::is4xxClientError,
-                      (request, response) -> {
-                        throw new ResourceNotAvailableException(
-                            MessageFormat.format(
-                                " ResourceId={0}: Resource not available", resourceId));
-                      })
-                  .body(ByteArrayResource.class))
-          .map(
-              resource -> {
-                log.info(MessageFormat.format(" ResourceId={0}: Resource downloaded", resourceId));
-                return resource;
-              })
-          .map(ByteArrayResource::getByteArray);
-    } catch (ResourceNotAvailableException exception) {
-      log.error(exception.getMessage());
-      return Optional.empty();
+  private byte[] getResourceData(Integer resourceId) {
+    ByteArrayResource resource =
+        restClient
+            .get()
+            .uri(resourceServiceUrl + "/" + resourceId)
+            .retrieve()
+            .body(ByteArrayResource.class);
+
+    if (Objects.nonNull(resource)) {
+      log.info(MessageFormat.format("ResourceId={0}: Resource downloaded", resourceId));
+      return resource.getByteArray();
+    } else {
+      throw new ResourceNotAvailableException(
+          MessageFormat.format("ResourceId={0}: Resource not available", resourceId));
     }
   }
 
-  private static Optional<ResourceMetadata> parseResourceMetadata(
-      ResourceParser resourceParser, Integer resourceId, byte[] resourceData) {
-    try (InputStream inputStream = new ByteArrayInputStream(resourceData)) {
-      return Optional.of(resourceParser.getMetadata(resourceId, inputStream))
-          .map(
-              resourceMetadata -> {
-                log.info(
-                    MessageFormat.format(" ResourceId={0}: Resource metadata parsed", resourceId));
-                return resourceMetadata;
-              });
-
-    } catch (IOException | InvalidResourceDataException exception) {
-      log.error(exception.getMessage());
-      return Optional.empty();
-    }
+  private Metadata parseResourceMetadata(Integer resourceId, byte[] resourceData) {
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resourceData);
+    Metadata metadata = resourceParser.getMetadata(resourceId, byteArrayInputStream);
+    log.info(MessageFormat.format("ResourceId={0}: Resource metadata parsed", resourceId));
+    return metadata;
   }
 
-  private static Optional<Integer> postResourceMetadata(
-      RestClient restClient, String songServiceUrl, ResourceMetadata metadata) {
-    return Optional.ofNullable(
-            restClient
-                .post()
-                .uri(songServiceUrl)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(metadata)
-                .retrieve()
-                .body(Integer.class))
-        .map(
-            metadataId -> {
-              log.info(
-                  MessageFormat.format(
-                      " MetadataId={0}: Metadata inserted/updated in DB", metadataId));
-              return metadataId;
-            });
+  private void postResourceMetadata(Integer resourceId, Metadata metadata) {
+    Integer metadataId =
+        restClient
+            .post()
+            .uri(songServiceUrl)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(metadata)
+            .retrieve()
+            .body(Integer.class);
+
+    if (Objects.nonNull(metadataId)) {
+      log.info(
+          MessageFormat.format(
+              "ResourceId={0}: MetadataId={1} inserted/updated in DB", resourceId, metadataId));
+    } else {
+      throw new ResourceProcessorException(
+          MessageFormat.format(
+              "ResourceId={0}: Something went wrong, please try again later...", resourceId));
+    }
   }
 }

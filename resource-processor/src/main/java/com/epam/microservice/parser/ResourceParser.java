@@ -1,12 +1,11 @@
 package com.epam.microservice.parser;
 
 import com.epam.microservice.exception.InvalidResourceDataException;
-import com.epam.microservice.model.ResourceMetadata;
+import com.epam.microservice.model.Metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.mp3.Mp3Parser;
@@ -23,10 +22,10 @@ public class ResourceParser {
   private static final String LENGTH = "xmpDM:duration";
   private static final String YEAR = "xmpDM:releaseDate";
 
-  public ResourceMetadata getMetadata(Integer resourceId, InputStream inputStream) {
+  public Metadata getMetadata(Integer resourceId, InputStream inputStream) {
 
     BodyContentHandler handler = new BodyContentHandler();
-    Metadata metadata = new Metadata();
+    org.apache.tika.metadata.Metadata metadata = new org.apache.tika.metadata.Metadata();
     ParseContext parseContext = new ParseContext();
     Parser parser = new Mp3Parser();
 
@@ -37,7 +36,7 @@ public class ResourceParser {
           MessageFormat.format("ResourceId={0}: Invalid resource data", resourceId));
     }
 
-    return ResourceMetadata.builder()
+    return Metadata.builder()
         .name(metadata.get(NAME))
         .artist(metadata.get(ARTIST))
         .album(metadata.get(ALBUM))

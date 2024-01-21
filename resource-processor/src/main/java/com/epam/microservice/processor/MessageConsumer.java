@@ -16,7 +16,7 @@ public class MessageConsumer {
     this.resourceProcessor = resourceProcessor;
   }
 
-  @KafkaListener(id = "ResourceProcessor", topics = "#{systemEnvironment['spring.kafka.topic']}")
+  @KafkaListener(id = "resource", topics = "#{systemEnvironment['spring.kafka.topic']}")
   public void listen(String resourceId) {
     log.info(MessageFormat.format("Message received: ResourceId={0}", resourceId));
     resourceProcessor.processMetadata(Integer.valueOf(resourceId));

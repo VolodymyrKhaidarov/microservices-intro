@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -20,6 +21,10 @@ public class ResourceProcessorImpl implements ResourceProcessor {
 
   private final ResourceParser resourceParser;
   private final RestClient restClient;
+  private final KafkaTemplate<String, String> kafkaTemplate;
+
+  @Value("${spring.kafka.response_topic}")
+  private String responseTopic;
 
   @Value("${song.service.url}")
   private String songServiceUrl;
@@ -27,9 +32,13 @@ public class ResourceProcessorImpl implements ResourceProcessor {
   @Value("${resource.service.url}")
   private String resourceServiceUrl;
 
-  public ResourceProcessorImpl(ResourceParser resourceParser, RestClient restClient) {
+  public ResourceProcessorImpl(
+      ResourceParser resourceParser,
+      RestClient restClient,
+      KafkaTemplate<String, String> kafkaTemplate) {
     this.resourceParser = resourceParser;
     this.restClient = restClient;
+    this.kafkaTemplate = kafkaTemplate;
   }
 
   @Override
@@ -80,7 +89,13 @@ public class ResourceProcessorImpl implements ResourceProcessor {
     } else {
       throw new ResourceProcessorException(
           MessageFormat.format(
-              "ResourceId={0}: Something went wrong, please try again later...", resourceId));
+              "ResourceId={0}: Something went wrong, please try again later", resourceId));
     }
+
+    log.info(
+        MessageFormat.format(
+            "ResourceId={0}: MetadataId={1} has been processed. Sent response to Resource Service",
+            resourceId, metadataId));
+    kafkaTemplate.send(responseTopic, resourceId.toString());
   }
 }

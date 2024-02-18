@@ -23,19 +23,13 @@ public class StorageController {
     return new ResponseEntity<>(id, HttpStatus.OK);
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<StorageObject> getStorageById(@PathVariable int id) {
-    StorageObject storageById = storageService.getStorageById(id);
-    return new ResponseEntity<>(storageById, HttpStatus.OK);
+  @GetMapping()
+  public ResponseEntity<List<StorageObject>> getStorages() {
+    return new ResponseEntity<>(storageService.getStorages(), HttpStatus.OK);
   }
 
   @DeleteMapping
   public List<Integer> deleteStorages(@RequestParam(value = "ids") String ids) {
-    return storageService.deleteStoragesByIds(ids);
-  }
-
-  @GetMapping()
-  public ResponseEntity<List<StorageObject>> getAllStorages() {
-    return new ResponseEntity<>(storageService.getAllStorages(), HttpStatus.OK);
+    return storageService.deleteStorages(ids);
   }
 }

@@ -7,9 +7,7 @@ public interface StorageService {
 
   Integer addStorage(StorageObject storageObject);
 
-  StorageObject getStorageById(Integer id);
+  List<Integer> deleteStorages(String ids);
 
-  List<Integer> deleteStoragesByIds(String ids);
-
-  List<StorageObject> getAllStorages();
+  List<StorageObject> getStorages();
 }

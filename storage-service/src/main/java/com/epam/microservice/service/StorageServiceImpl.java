@@ -23,12 +23,7 @@ public class StorageServiceImpl implements StorageService {
   }
 
   @Override
-  public StorageObject getStorageById(Integer id) {
-    return storageRepository.findById(id).orElse(null);
-  }
-
-  @Override
-  public List<Integer> deleteStoragesByIds(String ids) {
+  public List<Integer> deleteStorages(String ids) {
     return Optional.ofNullable(ids).map(str -> str.split(",")).stream()
         .flatMap(Stream::of)
         .filter(str -> str.matches("-?(0|[1-9]\\d*)"))
@@ -42,7 +37,7 @@ public class StorageServiceImpl implements StorageService {
   }
 
   @Override
-  public List<StorageObject> getAllStorages() {
+  public List<StorageObject> getStorages() {
     return StreamSupport.stream(storageRepository.findAll().spliterator(), false).toList();
   }
 }

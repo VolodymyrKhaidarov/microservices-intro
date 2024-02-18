@@ -10,4 +10,6 @@ public interface ResourceService {
   byte[] getResourceById(Integer id);
 
   List<Integer> deleteResources(String ids);
+
+  void moveToPermanentStage(Integer id);
 }

@@ -15,6 +15,7 @@
         <module>song-service</module>
         <module>eureka-service-registry</module>
         <module>gateway-service</module>
+        <module>storage-service</module>
     </modules>
 
 </project>

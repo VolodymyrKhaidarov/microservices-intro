@@ -1,5 +1,7 @@
 package com.epam.microservice.service;
 
+import static com.epam.microservice.model.StorageType.PERMANENT;
+import static com.epam.microservice.model.StorageType.STAGING;
 import static java.text.MessageFormat.format;
 
 import com.epam.microservice.exception.InvalidFileException;
@@ -8,8 +10,8 @@ import com.epam.microservice.model.Resource;
 import com.epam.microservice.model.StorageObject;
 import com.epam.microservice.model.StorageType;
 import com.epam.microservice.repository.ResourceRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -67,7 +70,7 @@ public class ResourceServiceImpl implements ResourceService {
     String key = multipartFile.getOriginalFilename();
 
     Integer id = getResourceIdIfExists(key);
-    StorageObject stagStorage = getStorage(StorageType.STAGING);
+    StorageObject stagStorage = getStorage(STAGING);
     Resource resource = new Resource(id, stagStorage.getBucket(), stagStorage.getPath(), key);
 
     id = resourceRepository.save(resource).getId();
@@ -120,8 +123,8 @@ public class ResourceServiceImpl implements ResourceService {
 
     if (Objects.nonNull(resourceKey)) {
 
-      StorageObject stagStorage = getStorage(StorageType.STAGING);
-      StorageObject permStorage = getStorage(StorageType.PERMANENT);
+      StorageObject stagStorage = getStorage(STAGING);
+      StorageObject permStorage = getStorage(PERMANENT);
 
       s3Service.moveResource(
           stagStorage.getPath() + resourceKey,
@@ -145,14 +148,26 @@ public class ResourceServiceImpl implements ResourceService {
         .orElse(null);
   }
 
-  private StorageObject getStorage(StorageType storageType) {
-    return Optional.ofNullable(
-            restClient.get().uri(storageServiceUrl).retrieve().body(StorageObject[].class))
-        .map(Arrays::asList)
-        .orElse(List.of())
-        .stream()
+  public StorageObject getStorage(StorageType storageType) {
+    return getStorages().stream()
         .filter(storageObject -> storageType.toString().equals(storageObject.getStorageType()))
         .findFirst()
         .orElse(null);
+  }
+
+  @CircuitBreaker(name = "storage-service", fallbackMethod = "getStubbedStorages")
+  public List<StorageObject> getStorages() {
+    return restClient
+        .get()
+        .uri(storageServiceUrl)
+        .retrieve()
+        .body(new ParameterizedTypeReference<>() {});
+  }
+
+  public List<StorageObject> getStubbedStorages(Throwable ex) {
+    log.warn("Circuit Breaker fallback method called");
+    return List.of(
+        new StorageObject(1, STAGING.toString(), "staging-storage", "staging-folder/"),
+        new StorageObject(2, PERMANENT.toString(), "permanent-storage", "permanent-folder/"));
   }
 }

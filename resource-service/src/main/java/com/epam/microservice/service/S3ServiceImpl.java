@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -19,28 +20,47 @@ public class S3ServiceImpl implements S3Service {
   }
 
   @Override
-  public String uploadResource(String key, byte[] payload, String s3Bucket) {
-    PutObjectRequest request = PutObjectRequest.builder().key(key).bucket(s3Bucket).build();
+  public String uploadResource(String key, byte[] payload, String bucket) {
+
+    PutObjectRequest request = PutObjectRequest.builder().key(key).bucket(bucket).build();
     s3Client.putObject(request, RequestBody.fromBytes(payload));
+
     return key;
   }
 
   @Override
-  public Optional<byte[]> downloadResource(String key, String s3Bucket) {
-    try {
-      GetObjectRequest request = GetObjectRequest.builder().key(key).bucket(s3Bucket).build();
-      return Optional.of(s3Client.getObject(request).readAllBytes());
+  public Optional<byte[]> downloadResource(String key, String bucket) {
 
+    GetObjectRequest request = GetObjectRequest.builder().key(key).bucket(bucket).build();
+
+    try {
+      return Optional.of(s3Client.getObject(request).readAllBytes());
     } catch (IOException ioException) {
       return Optional.empty();
     }
   }
 
   @Override
-  public void deleteResource(String key, String s3Bucket) {
-    DeleteObjectRequest deleteObjectRequest =
-        DeleteObjectRequest.builder().key(key).bucket(s3Bucket).build();
+  public void deleteResource(String key, String bucket) {
 
-    s3Client.deleteObject(deleteObjectRequest);
+    DeleteObjectRequest request = DeleteObjectRequest.builder().key(key).bucket(bucket).build();
+
+    s3Client.deleteObject(request);
+  }
+
+  @Override
+  public void moveResource(
+      String sourceKey, String sourceBucket, String destinationKey, String destinationBucket) {
+
+    CopyObjectRequest copyObjectRequest =
+        CopyObjectRequest.builder()
+            .sourceKey(sourceKey)
+            .sourceBucket(sourceBucket)
+            .destinationKey(destinationKey)
+            .destinationBucket(destinationBucket)
+            .build();
+
+    s3Client.copyObject(copyObjectRequest);
+    deleteResource(sourceKey, sourceBucket);
   }
 }

@@ -9,14 +9,15 @@ import com.epam.microservice.model.StorageObject;
 import com.epam.microservice.model.StorageType;
 import com.epam.microservice.repository.ResourceRepository;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -55,9 +56,6 @@ public class ResourceServiceImpl implements ResourceService {
       throw new InvalidFileException("Invalid file");
     }
 
-    String key = multipartFile.getOriginalFilename();
-    log.info(format("ResourceKey={0}", key));
-
     byte[] bytes;
 
     try {
@@ -66,39 +64,32 @@ public class ResourceServiceImpl implements ResourceService {
       throw new InvalidFileException("Invalid file");
     }
 
-    String stagingStoragePath = getStoragePath(StorageType.STAGING);
-    log.info(format("ResourceKey={0}: Staging storage path: {1}", key, stagingStoragePath));
+    String key = multipartFile.getOriginalFilename();
 
-    s3Service.uploadResource(key, bytes, stagingStoragePath);
-    log.info(
-        format(
-            "ResourceKey={0}: Resource uploaded to STAGING storage {1}", key, stagingStoragePath));
+    Integer id = getResourceIdIfExists(key);
+    StorageObject stagStorage = getStorage(StorageType.STAGING);
+    Resource resource = new Resource(id, stagStorage.getBucket(), stagStorage.getPath(), key);
 
-    Integer resourceId =
-        resourceRepository.findByResourceKey(key).stream()
-            .findFirst()
-            .map(Resource::getId)
-            .orElse(null);
+    id = resourceRepository.save(resource).getId();
+    log.info(format("ResourceKey {0}: Assigned ResourceId {1}", key, id));
+    log.info(format("ResourceId {0}: Saved in resource-db", id));
 
-    Resource resource = new Resource(resourceId, stagingStoragePath, key);
-    resourceId = resourceRepository.save(resource).getId();
+    s3Service.uploadResource(stagStorage.getPath() + key, bytes, stagStorage.getBucket());
+    log.info(format("ResourceId {0}: Saved in staging storage", id));
 
-    log.info(format("ResourceKey={0}: Saved to resource-db with id: {1}", key, resourceId));
+    kafkaTemplate.send(requestTopic, id.toString());
+    log.info(format("ResourceId {0}: Processing request sent to topic {1}", id, requestTopic));
 
-    kafkaTemplate.send(requestTopic, resourceId.toString());
-    log.info(
-        format(
-            "ResourceKey={0}: Processing request with ResourceId {1} sent to topic: {2}",
-            key, resourceId, requestTopic));
-
-    return resourceId;
+    return id;
   }
 
   public byte[] getResourceById(Integer id) {
     return resourceRepository
         .findById(id)
         .flatMap(
-            resource -> s3Service.downloadResource(resource.getResourceKey(), resource.getBucket()))
+            resource ->
+                s3Service.downloadResource(
+                    resource.getPath() + resource.getResourceKey(), resource.getBucket()))
         .orElseThrow(
             () -> new ResourceNotFoundException("The resource with id " + id + " does not exist"));
   }
@@ -115,7 +106,8 @@ public class ResourceServiceImpl implements ResourceService {
         .peek(
             resource -> {
               resourceRepository.deleteById(resource.getId());
-              s3Service.deleteResource(resource.getResourceKey(), resource.getBucket());
+              s3Service.deleteResource(
+                  resource.getPath() + resource.getResourceKey(), resource.getBucket());
             })
         .map(Resource::getId)
         .toList();
@@ -123,46 +115,44 @@ public class ResourceServiceImpl implements ResourceService {
 
   @Override
   public void moveToPermanentStage(Integer id) {
-    log.info(format("ResourceId={0}: Start moving to the PERMANENT storage", id));
-    Optional<Resource> stagingResource = resourceRepository.findById(id);
-    String stagingStoragePath = getStoragePath(StorageType.STAGING);
-    String permanentStoragePath = getStoragePath(StorageType.PERMANENT);
 
-    if (stagingResource.isPresent()) {
-      log.info(format("ResourceId={0}: Resource found in resource-db", id));
+    String resourceKey = resourceRepository.findById(id).map(Resource::getResourceKey).orElse(null);
 
-      String resourceKey = stagingResource.get().getResourceKey();
-      byte[] payload = s3Service.downloadResource(resourceKey, stagingStoragePath).orElse(null);
-      log.info(format("ResourceId={0}: Retrieved ResourceKey: {1}", id, resourceKey));
+    if (Objects.nonNull(resourceKey)) {
 
-      s3Service.deleteResource(resourceKey, getStoragePath(StorageType.STAGING));
-      log.info(format("ResourceId={0}: Resource removed from the STAGING storage", id));
+      StorageObject stagStorage = getStorage(StorageType.STAGING);
+      StorageObject permStorage = getStorage(StorageType.PERMANENT);
 
-      s3Service.uploadResource(resourceKey, payload, permanentStoragePath);
-      log.info(format("ResourceId={0}: Resource saved in the PERMANENT storage", id));
+      s3Service.moveResource(
+          stagStorage.getPath() + resourceKey,
+          stagStorage.getBucket(),
+          permStorage.getPath() + resourceKey,
+          permStorage.getBucket());
 
-      resourceRepository.save(new Resource(id, permanentStoragePath, resourceKey));
-      log.info(format("ResourceId={0}: Resource updated in resource-db", id));
+      Resource permResource =
+          new Resource(id, permStorage.getBucket(), permStorage.getPath(), resourceKey);
+
+      resourceRepository.save(permResource);
+
+      log.info(format("ResourceId {0}: Resource moved to permanent storage", id));
     }
   }
 
-  private String getStoragePath(StorageType storageType) {
-    StorageObject storage = getStorageDetails(storageType);
-    return storage.getBucket();
-  }
-
-  private StorageObject getStorageDetails(StorageType storageType) {
-    return getStorages().stream()
-        .filter(storageObject -> storageType.toString().equals(storageObject.getStorageType()))
+  private Integer getResourceIdIfExists(String resourceKey) {
+    return resourceRepository.findByResourceKey(resourceKey).stream()
         .findFirst()
+        .map(Resource::getId)
         .orElse(null);
   }
 
-  private List<StorageObject> getStorages() {
-    return restClient
-        .get()
-        .uri(storageServiceUrl)
-        .retrieve()
-        .body(new ParameterizedTypeReference<>() {});
+  private StorageObject getStorage(StorageType storageType) {
+    return Optional.ofNullable(
+            restClient.get().uri(storageServiceUrl).retrieve().body(StorageObject[].class))
+        .map(Arrays::asList)
+        .orElse(List.of())
+        .stream()
+        .filter(storageObject -> storageType.toString().equals(storageObject.getStorageType()))
+        .findFirst()
+        .orElse(null);
   }
 }

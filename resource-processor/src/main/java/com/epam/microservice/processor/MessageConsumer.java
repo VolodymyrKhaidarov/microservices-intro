@@ -21,7 +21,7 @@ public class MessageConsumer {
   public void listen(String resourceId) {
     log.info(
         MessageFormat.format(
-            "ResourceId={0}: Processing request received in Resource Processor", resourceId));
+            "ResourceId {0}: Processing request received", resourceId));
     resourceProcessor.processMetadata(Integer.valueOf(resourceId));
   }
 }

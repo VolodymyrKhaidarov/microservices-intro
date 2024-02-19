@@ -21,7 +21,7 @@ public class MessageConsumer {
   public void listen(String resourceId) {
     log.info(
         MessageFormat.format(
-            "ResourceId: {0}. Processing response received", resourceId));
+            "ResourceId {0}: Processing response received", resourceId));
     resourceService.moveToPermanentStage(Integer.valueOf(resourceId));
   }
 }

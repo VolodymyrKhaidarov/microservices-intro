@@ -1,11 +1,12 @@
 package com.epam.microservice.processor;
 
+import static java.text.MessageFormat.format;
+
 import com.epam.microservice.exception.ResourceNotAvailableException;
 import com.epam.microservice.exception.ResourceProcessorException;
 import com.epam.microservice.model.Metadata;
 import com.epam.microservice.parser.ResourceParser;
 import java.io.ByteArrayInputStream;
-import java.text.MessageFormat;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,18 +58,18 @@ public class ResourceProcessorImpl implements ResourceProcessor {
             .body(ByteArrayResource.class);
 
     if (Objects.nonNull(resource)) {
-      log.info(MessageFormat.format("ResourceId={0}: Resource downloaded", resourceId));
+      log.info(format("ResourceId {0}: Resource downloaded", resourceId));
       return resource.getByteArray();
     } else {
       throw new ResourceNotAvailableException(
-          MessageFormat.format("ResourceId={0}: Resource not available", resourceId));
+          format("ResourceId {0}: Resource not available", resourceId));
     }
   }
 
   private Metadata parseResourceMetadata(Integer resourceId, byte[] resourceData) {
     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resourceData);
     Metadata metadata = resourceParser.getMetadata(resourceId, byteArrayInputStream);
-    log.info(MessageFormat.format("ResourceId={0}: Resource metadata parsed", resourceId));
+    log.info(format("ResourceId {0}: Metadata parsed", resourceId));
     return metadata;
   }
 
@@ -83,19 +84,14 @@ public class ResourceProcessorImpl implements ResourceProcessor {
             .body(Integer.class);
 
     if (Objects.nonNull(metadataId)) {
-      log.info(
-          MessageFormat.format(
-              "ResourceId={0}: MetadataId={1} inserted/updated in DB", resourceId, metadataId));
+      log.info(format("ResourceId {0}: Saved in song-db with MetadataId {1}", resourceId, metadataId));
     } else {
       throw new ResourceProcessorException(
-          MessageFormat.format(
-              "ResourceId={0}: Something went wrong, please try again later", resourceId));
+          format("ResourceId {0}: Something went wrong, please try again later...", resourceId));
     }
 
-    log.info(
-        MessageFormat.format(
-            "ResourceId={0}: MetadataId={1} has been processed. Sent response to Resource Service",
-            resourceId, metadataId));
     kafkaTemplate.send(responseTopic, resourceId.toString());
+    log.info(
+        format("ResourceId {0}: Processing response sent to topic {1}", resourceId, responseTopic));
   }
 }

@@ -20,6 +20,9 @@ public class Resource {
   @Column(name = "bucket")
   private String bucket;
 
+  @Column(name = "path")
+  private String path;
+
   @Column(name = "resource_key")
   private String resourceKey;
 }

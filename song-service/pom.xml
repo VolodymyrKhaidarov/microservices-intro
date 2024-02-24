@@ -126,6 +126,7 @@
             <plugin>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-contract-maven-plugin</artifactId>
+                <version>4.1.1</version>
                 <extensions>true</extensions>
                 <configuration>
                     <baseClassForTests>com.epam.microservice.SongServiceContractTest</baseClassForTests>

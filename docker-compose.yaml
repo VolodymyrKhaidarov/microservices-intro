@@ -1,28 +1,7 @@
 version: '3'
 
 services:
-  async-zookeeper:
-    image: 'wurstmeister/zookeeper'
-    ports:
-      - "2181:2181"
-
-  async-kafka:
-    image: 'wurstmeister/kafka'
-    ports:
-      - "9092-9093:9092-9093"
-    env_file:
-      - 'config/async.env'
-
-  aws-localstack:
-    image: 'localstack/localstack'
-    ports:
-      - '4566:4566'
-      - '4510-4559:4510-4559'
-    volumes:
-      - './config/script/aws.sh:/etc/localstack/init/ready.d/aws.sh'
-      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
-      - '/var/run/docker.sock:/var/run/docker.sock'
-
+  # discovery and routing services
   eureka-service-registry:
     build: './eureka-service-registry'
     image: 'eureka-service-registry:1.0.0'
@@ -41,6 +20,7 @@ services:
     env_file:
       - 'config/gateway.env'
 
+  # application services
   resource-service:
     build: './resource-service'
     image: 'resource-service:1.0.0'
@@ -88,6 +68,31 @@ services:
     env_file:
       - 'config/storage.env'
 
+  # async messaging
+  async-zookeeper:
+    image: 'wurstmeister/zookeeper'
+    ports:
+      - "2181:2181"
+
+  async-kafka:
+    image: 'wurstmeister/kafka'
+    ports:
+      - "9092-9093:9092-9093"
+    env_file:
+      - 'config/async.env'
+
+  # aws for S3 storage
+  aws-localstack:
+    image: 'localstack/localstack'
+    ports:
+      - '4566:4566'
+      - '4510-4559:4510-4559'
+    volumes:
+      - './config/script/aws.sh:/etc/localstack/init/ready.d/aws.sh'
+      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+
+  # postgres databases
   resource-db:
     image: 'postgres:16.1'
     ports:
@@ -114,3 +119,23 @@ services:
       - 'config/storage.env'
     volumes:
       - './config/script/storage.sql:/docker-entrypoint-initdb.d/storage.sql'
+
+  #monitoring
+  prometheus:
+    image: 'prom/prometheus'
+    ports:
+      - "9090:9090"
+    restart: 'unless-stopped'
+    volumes:
+      - './config/prometheus:/etc/prometheus'
+    command: '--web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: 'grafana/grafana'
+    ports:
+      - "3000:3000"
+    env_file:
+      - 'config/grafana/grafana.env'
+    restart: 'unless-stopped'
+    volumes:
+      - './config/grafana:/etc/grafana/provisioning/datasources'

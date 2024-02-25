@@ -139,3 +139,8 @@ services:
     restart: 'unless-stopped'
     volumes:
       - './config/grafana:/etc/grafana/provisioning/datasources'
+
+  zipkin:
+    image: 'openzipkin/zipkin'
+    ports:
+      - '9411:9411'

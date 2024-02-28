@@ -1,0 +1,12 @@
+Admin:
+
+docker container exec -it microservices-intro-aws-localstack-1 \
+ curl -d "client_id=mf-app&username=admin&password=password&grant_type=password"\
+ -H "Content-Type: application/x-www-form-urlencoded"\
+ -X POST http://keycloak:8080/realms/mf-realm/protocol/openid-connect/token
+
+User:
+docker container exec -it microservices-intro-aws-localstack-1 \
+ curl -d "client_id=mf-app&username=user&password=password&grant_type=password"\
+ -H "Content-Type: application/x-www-form-urlencoded"\
+ -X POST http://keycloak:8080/realms/mf-realm/protocol/openid-connect/token

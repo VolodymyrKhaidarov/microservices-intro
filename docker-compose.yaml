@@ -63,6 +63,7 @@ services:
     depends_on:
       - 'eureka-service-registry'
       - 'gateway-service'
+      - 'keycloak'
     ports:
       - '8084:8080'
     env_file:
@@ -79,7 +80,7 @@ services:
     ports:
       - "9092-9093:9092-9093"
     env_file:
-      - 'config/async.env'
+      - 'config/kafka/async.env'
 
   # aws for S3 storage
   aws-localstack:
@@ -88,7 +89,7 @@ services:
       - '4566:4566'
       - '4510-4559:4510-4559'
     volumes:
-      - './config/script/aws.sh:/etc/localstack/init/ready.d/aws.sh'
+      - './config/database/aws.sh:/etc/localstack/init/ready.d/aws.sh'
       - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
       - '/var/run/docker.sock:/var/run/docker.sock'
 
@@ -98,27 +99,27 @@ services:
     ports:
       - '5433:5432'
     env_file:
-      - 'config/resource.env'
+      - 'config/database/resource-db.env'
     volumes:
-      - './config/script/resource.sql:/docker-entrypoint-initdb.d/resource.sql'
+      - './config/database/resource.sql:/docker-entrypoint-initdb.d/resource.sql'
 
   song-db:
     image: 'postgres:16.1'
     ports:
       - '5434:5432'
     env_file:
-      - 'config/song.env'
+      - 'config/database/song-db.env'
     volumes:
-      - './config/script/song.sql:/docker-entrypoint-initdb.d/song.sql'
+      - './config/database/song.sql:/docker-entrypoint-initdb.d/song.sql'
 
   storage-db:
     image: 'postgres:16.1'
     ports:
       - '5435:5432'
     env_file:
-      - 'config/storage.env'
+      - 'config/database/storage-db.env'
     volumes:
-      - './config/script/storage.sql:/docker-entrypoint-initdb.d/storage.sql'
+      - './config/database/storage.sql:/docker-entrypoint-initdb.d/storage.sql'
 
   #monitoring
   prometheus:
@@ -151,7 +152,7 @@ services:
     ports:
       - '8085:8080'
     env_file:
-          - 'config/keycloak.env'
+          - 'config/keycloak/keycloak.env'
     command: 'start-dev'
 
 

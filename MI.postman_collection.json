@@ -1,0 +1,282 @@
+{
+	"info": {
+		"_postman_id": "69aefcf7-cd35-433e-b8df-47fec4a6e0d6",
+		"name": "Microservices Introduction",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Upload audio",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/home/vkh15/Downloads/yaktak.mp3"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/resources",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"resources"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download audio",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/resources/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"resources",
+						"1"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete audio",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/resources?id=1,2,3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"resources"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1,2,3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload song",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"We are the champions\",\n    \"artist\": \"Queen\",\n    \"album\": \"News of the world\",\n    \"length\": \"2:59\",\n    \"year\": \"1977\",\n    \"resourceId\": \"123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/songs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"songs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get song",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/songs/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"songs",
+						"1"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete song",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/songs?id=1,2,3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"songs"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1,2,3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get storages",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICItaUVsUHZQdTdFSjFrWmlfOVFfeGZTMk5FdW42dTJBMk5Lb29iTmNpenFFIn0.eyJleHAiOjE3MDkwNzEzODcsImlhdCI6MTcwOTA3MTA4NywianRpIjoiZTNhZjk5ZjgtNzIxNy00NDg4LTg5ZDEtZWU0NTI2NDBjNTExIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDg1L3JlYWxtcy9NRktleWNsb2FrIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImFhOWQwNmJkLWMzYjQtNGZlZC05MjM0LTg4MjcxOTZmOWEwMCIsInR5cCI6IkJlYXJlciIsImF6cCI6Im1mLWFwcCIsInNlc3Npb25fc3RhdGUiOiIzNTA1ZDgyOC00OWUzLTRkNDItYjM5Yi1hMGVmZjU3NGVmY2UiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLW1pY3Jvc2VydmljZXNmdW5kYW1lbnRhbHNrZXljbG9hayIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwic2lkIjoiMzUwNWQ4MjgtNDllMy00ZDQyLWIzOWItYTBlZmY1NzRlZmNlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ1c2VyIn0.tQWmXa5PoAiZCw0Xp1_DQ5DOV0pkXUEiJ1hxeVFjOET4-arOz0PTWNxz-BEqQ-JWVYqTNqiMQ3AMEuQSfyD-PmdwIoPEwHf0zuX6to-296uHOLaBErQPg6bOAEEaNmjYuEYSgvdz1QS00g_WjGDG-CnIyebxyGsy72bknbDpfWdCdsbqwpZMki8DTddqTXJxOoTTyJK3UbW9DE19tzdXjoxLkV0d1DsW-033-miIDnSmXB1UGV1Es-kIlU_kxJEbr2vEpc8U5FYNJHPXGlFTJruLReab4Cn9CSp8kS6n7Y-SBcTpCQAk4c5Tn1BkgPmxQ6VezhAQeqHvVYbk-6GH4A",
+						"type": "default",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8084/storages",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"storages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Storage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJNb185Rldha2cxNXE2TlkzVHVJMGNyT1lFUkRvR0hlVjFtQU81UXFWZHhVIn0.eyJleHAiOjE3MDkxNTczOTEsImlhdCI6MTcwOTE1NzA5MSwianRpIjoiZjVkODAzNzctNWQxYi00ZjgyLTk1NjUtMmRkZTkzMjkyNTY1IiwiaXNzIjoiaHR0cDovL2tleWNsb2FrOjgwODAvcmVhbG1zL21mLXJlYWxtIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImY2OGRmOTgwLTY0ZjItNDBmMS1hMjVkLTI2MmYwZTQ2ZmY1YiIsInR5cCI6IkJlYXJlciIsImF6cCI6Im1mLWFwcCIsInNlc3Npb25fc3RhdGUiOiIxZTdhZWE5Yy1hN2ZhLTQzMTgtOTBiYS0xMjE2ZWQwMzM4MTUiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLW1mLXJlYWxtIiwib2ZmbGluZV9hY2Nlc3MiLCJhZG1pbiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwic2lkIjoiMWU3YWVhOWMtYTdmYS00MzE4LTkwYmEtMTIxNmVkMDMzODE1IiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbiJ9.Sprf4qyCz6LvYR9u7tfYBUZVi1es8elv1WSHiQcZwQa2w5w7NjTlLqy90CQrGRebzuMOPQIEGkeL0ZRfW6PFRq5pjdmkKOEAN66m-q4aH9ECPJnsVgt_dtp47OVdxN2_rNOGtBF4js_qPnYr9U4E4VRO_wbgvnJoVZIWGxp8oByH26IC5dzcWlls4dfdCX6N-1eGHkXZjTsjEV62-4WSR6mF6YnxoB79U--Ha8k1Ed--kfWZDU1tDawLXfiLEom9Kid3ChfvpoMb_oCYJ1qwxzBsokdFT4nrrXk6Fclape-ELmekr0jDHlnk-elioadG7rlA_nb8zSUugh2cHfIymg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8084/storages?ids=1,2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8084",
+					"path": [
+						"storages"
+					],
+					"query": [
+						{
+							"key": "ids",
+							"value": "1,2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Access token",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "mf-app",
+							"type": "default"
+						},
+						{
+							"key": "username",
+							"value": "user",
+							"type": "default"
+						},
+						{
+							"key": "password",
+							"value": "password",
+							"type": "default"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8085/realms/mf-realm/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"realms",
+						"mf-realm",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
